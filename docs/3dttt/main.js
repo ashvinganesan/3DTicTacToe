@@ -1,4 +1,10 @@
 /* 3D Tic-Tac-Toe, 3x3x3, two-player hotseat */
+if (typeof THREE === 'undefined' || typeof THREE.OrbitControls === 'undefined') {
+  const el = document.getElementById('status') || document.body;
+  if (el) el.textContent = 'Failed to load Three.js/OrbitControls. Check network/CORS.';
+  console.error('3DTTT: Missing THREE or OrbitControls');
+  throw new Error('Missing THREE/OrbitControls');
+}
 
 // Scene setup
 const appContainer = document.getElementById('app');
