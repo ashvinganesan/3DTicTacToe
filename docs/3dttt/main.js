@@ -182,6 +182,10 @@ function onPointerMove(event) {
 
 function onClick() {
   if (gameOver) return;
+  if (useAI && currentPlayer === PLAYER_O) {
+    // Ignore human clicks during AI's turn
+    return;
+  }
   raycaster.setFromCamera(mouse, camera);
   const intersections = raycaster.intersectObjects(cells);
   if (intersections.length === 0) return;

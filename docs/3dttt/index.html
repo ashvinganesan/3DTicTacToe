@@ -14,6 +14,19 @@
       }
     </script>
     <script src="./app/app.js?v=1"></script>
+    <script>
+      // Ensure exports are available on window for easy access
+      (function(){
+        if (typeof window.$rt_exports !== 'undefined') {
+          if (typeof window.ttt_bestMove === 'undefined' && typeof window.$rt_exports.ttt_bestMove === 'function') {
+            window.ttt_bestMove = window.$rt_exports.ttt_bestMove;
+          }
+          if (typeof window.ttt_apply === 'undefined' && typeof window.$rt_exports.ttt_apply === 'function') {
+            window.ttt_apply = window.$rt_exports.ttt_apply;
+          }
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="ui">
