@@ -315,14 +315,15 @@ for (let x = 0; x < BOARD_SIZE; x += 1) {
 
 function checkWin() {
   for (const line of winningLines) {
-    const [a, b, c] = line;
-    const va = getCell(a[0], a[1], a[2]);
-    if (va === EMPTY) continue;
-    const vb = getCell(b[0], b[1], b[2]);
-    const vc = getCell(c[0], c[1], c[2]);
-    if (va === vb && vb === vc) {
-      return line;
+    const first = line[0];
+    let v = getCell(first[0], first[1], first[2]);
+    if (v === EMPTY) continue;
+    let all = true;
+    for (let i = 1; i < line.length; i += 1) {
+      const p = line[i];
+      if (getCell(p[0], p[1], p[2]) !== v) { all = false; break; }
     }
+    if (all) return line;
   }
   return null;
 }
@@ -437,6 +438,10 @@ function boardToEngineString() {
 }
 
 function applyAIMove(x, y, z) {
+  if (currentPlayer !== PLAYER_O) {
+    console.warn('Ignoring AI move because it is not O\'s turn');
+    return;
+  }
   setCell(x, y, z, PLAYER_O);
   for (const cell of cells) {
     const d = cell.userData;

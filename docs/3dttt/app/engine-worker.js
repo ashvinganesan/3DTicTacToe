@@ -20,7 +20,10 @@ self.onmessage = function(e) {
     try {
       const board = msg.board;
       const player = msg.player || 'O';
-      let res = fn(board, player.charCodeAt ? player.charCodeAt(0) : player);
+      let res = fn(board, player); // prefer string first
+      if (!res || typeof res[0] !== 'number') {
+        res = fn(board, player.charCodeAt ? player.charCodeAt(0) : player);
+      }
       if (!res || typeof res[0] !== 'number') {
         res = fn(board, player);
       }
