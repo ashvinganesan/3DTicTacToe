@@ -11,6 +11,15 @@ window.addEventListener('error', function (e) {
   if (el) el.textContent = 'Error: ' + e.message;
 });
 
+// Debug: log engine exports if present
+function logEngineAvailability(context) {
+  const available = typeof window.ttt_bestMove === 'function' ? 'window.ttt_bestMove' :
+    (typeof window.WebEntry !== 'undefined' && typeof window.WebEntry.ttt_bestMove === 'function' ? 'WebEntry.ttt_bestMove' :
+    (typeof window.tttweb_WebEntry !== 'undefined' && typeof window.tttweb_WebEntry.ttt_bestMove === 'function' ? 'tttweb_WebEntry.ttt_bestMove' : 'none'));
+  console.log(`[3dttt] Engine availability (${context}):`, available);
+}
+logEngineAvailability('onLoad');
+
 // Scene setup
 const appContainer = document.getElementById('app');
 const scene = new THREE.Scene();
@@ -357,6 +366,7 @@ if (aiToggleBtn) {
     e.stopPropagation();
     useAI = !useAI;
     aiToggleBtn.textContent = `AI: ${useAI ? 'On' : 'Off'}`;
+    logEngineAvailability('toggle');
     if (useAI && currentPlayer === PLAYER_O && !gameOver) {
       setTimeout(aiMove, 0);
     }
