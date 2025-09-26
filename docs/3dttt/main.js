@@ -206,6 +206,12 @@ function onPointerDown(e) {
   movedBeyondTolerance = false;
   pointerDownPosX = e.clientX;
   pointerDownPosY = e.clientY;
+  // Update mouse from the down event to avoid stale coordinates
+  {
+    const rect = renderer.domElement.getBoundingClientRect();
+    mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+  }
   pointerDownCell = pickCellUnderPointer();
 }
 
@@ -213,6 +219,12 @@ function onPointerUp(e) {
   e.preventDefault();
   const startedOnCell = pointerDown && pointerDownCell !== null;
   pointerDown = false;
+  // Update mouse from the up event then pick
+  {
+    const rect = renderer.domElement.getBoundingClientRect();
+    mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+  }
   const endCell = pickCellUnderPointer();
   if (!startedOnCell || movedBeyondTolerance || endCell !== pointerDownCell) {
     pointerDownCell = null;
