@@ -346,6 +346,31 @@ const statusEl = document.getElementById('status');
 const resetBtn = document.getElementById('reset');
 const aiToggleBtn = document.getElementById('aiToggle');
 let useAI = false; // AI plays O
+let engineWorker = null;
+function ensureWorker() {
+  if (!engineWorker) {
+    try {
+      engineWorker = new Worker('./app/engine-worker.js');
+      engineWorker.onmessage = (e) => {
+        const msg = e.data || {};
+        if (msg.type === 'bestMoveResult') {
+          if (!msg.ok) {
+            console.warn('Engine worker error:', msg.error);
+            useAI = false;
+            if (aiToggleBtn) aiToggleBtn.textContent = 'AI: Off';
+            return;
+          }
+          const { x, y, z } = msg.move;
+          if (getCell(x, y, z) === EMPTY && !gameOver && currentPlayer === PLAYER_O) {
+            applyAIMove(x, y, z);
+          }
+        }
+      };
+    } catch (e) {
+      console.warn('Failed to start engine worker', e);
+    }
+  }
+}
 
 function setStatusText(text) {
   statusEl.textContent = text;
@@ -371,6 +396,7 @@ if (aiToggleBtn) {
     e.stopPropagation();
     useAI = !useAI;
     aiToggleBtn.textContent = `AI: ${useAI ? 'On' : 'Off'}`;
+    if (useAI) ensureWorker();
     logEngineAvailability('toggle');
     if (useAI && currentPlayer === PLAYER_O && !gameOver) {
       setTimeout(aiMove, 0);
@@ -446,6 +472,11 @@ function getBestMoveFn() {
 
 function aiMove() {
   const bestMoveFn = getBestMoveFn();
+  ensureWorker();
+  if (engineWorker) {
+    engineWorker.postMessage({ type: 'bestMove', board: boardToEngineString(), player: 'O' });
+    return;
+  }
   if (!bestMoveFn) {
     console.warn('AI engine not available');
     useAI = false;
