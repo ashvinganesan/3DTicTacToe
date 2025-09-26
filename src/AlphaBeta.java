@@ -15,8 +15,13 @@ import java.util.Iterator;
 
 public class AlphaBeta {
     private Player computer;
+    private long deadlineMs = Long.MAX_VALUE;
+
+    public void setTimeBudgetMs(int timeBudgetMs) {
+        this.deadlineMs = System.currentTimeMillis() + Math.max(0, timeBudgetMs);
+    }
     public Coordinate bestMove(Board state, Player comp) {
-        int ply = 5;
+        int ply = (Board.N == 4) ? 3 : 5;
         computer = comp;
         Board tstate =  new Board(state);
         
@@ -68,6 +73,10 @@ public class AlphaBeta {
 
      public int maxValue(Board state, int depth, int alpha, int beta) {
 
+        if (System.currentTimeMillis() >= deadlineMs) {
+            return state.evaluate(computer);
+        }
+
         
         Board tstate =  new Board(state);
         Iterator<Coordinate> iter = state.emptySquareIterator();
@@ -103,6 +112,9 @@ public class AlphaBeta {
     }
 
      public int minValue(Board state, int depth, int alpha, int beta) {
+        if (System.currentTimeMillis() >= deadlineMs) {
+            return state.evaluate(computer);
+        }
         Board tstate =  new Board(state);
         Iterator<Coordinate> iter = state.emptySquareIterator();
         if(tstate.isTerminal()) {

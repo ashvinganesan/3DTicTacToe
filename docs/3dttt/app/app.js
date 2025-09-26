@@ -102,9 +102,13 @@ $rt_ucmp = (a, b) => {
     return a < b ?  -1 : a > b ? 1 : 0;
 },
 Long_ZERO = BigInt(0),
+Long_create = (lo, hi) => BigInt.asIntN(64, BigInt.asUintN(64, BigInt(lo)) | BigInt.asUintN(64, BigInt(hi) << BigInt(32))),
 Long_fromInt = val => BigInt.asIntN(64, BigInt(val | 0)),
+Long_fromNumber = val => BigInt.asIntN(64, BigInt(val >= 0 ? Math.floor(val) : Math.ceil(val))),
 Long_eq = (a, b) => a === b,
 Long_ne = (a, b) => a !== b,
+Long_ge = (a, b) => a >= b,
+Long_add = (a, b) => BigInt.asIntN(64, a + b),
 Long_sub = (a, b) => BigInt.asIntN(64, a - b),
 Long_and = (a, b) => BigInt.asIntN(64, a & b),
 Long_or = (a, b) => BigInt.asIntN(64, a | b),
@@ -602,6 +606,9 @@ jl_System_out = () => {
         jl_System_outCache = otcic_JSStdoutPrintStream__init_0();
     return jl_System_outCache;
 },
+jl_System_currentTimeMillis = () => {
+    return Long_fromNumber((new Date()).getTime());
+},
 t_TTTEngine = $rt_classWithoutFields(),
 t_TTTEngine_bestMove = ($boardString, $playerChar) => {
     let $board, $player, $search, $move, var$7, var$8;
@@ -610,6 +617,7 @@ t_TTTEngine_bestMove = ($boardString, $playerChar) => {
     if ($player === null)
         $rt_throw(jl_IllegalArgumentException__init_((((jl_StringBuilder__init_()).$append1($rt_s(0))).$append0($playerChar)).$toString()));
     $search = t_AlphaBeta__init_0();
+    $search.$setTimeBudgetMs(500);
     $move = $search.$bestMove($board, $player);
     if ($move === null)
         return null;
@@ -1686,20 +1694,25 @@ let t_Line$Axis__clinit_ = () => {
     t_Line$Axis_$VALUES = t_Line$Axis_$values();
 };
 function t_AlphaBeta() {
-    jl_Object.call(this);
-    this.$computer = null;
+    let a = this; jl_Object.call(a);
+    a.$computer = null;
+    a.$deadlineMs = Long_ZERO;
 }
 let t_AlphaBeta__init_ = $this => {
     jl_Object__init_($this);
+    $this.$deadlineMs = Long_create(4294967295, 2147483647);
 },
 t_AlphaBeta__init_0 = () => {
     let var_0 = new t_AlphaBeta();
     t_AlphaBeta__init_(var_0);
     return var_0;
 },
+t_AlphaBeta_setTimeBudgetMs = ($this, $timeBudgetMs) => {
+    $this.$deadlineMs = Long_add(jl_System_currentTimeMillis(), Long_fromInt(jl_Math_max(0, $timeBudgetMs)));
+},
 t_AlphaBeta_bestMove = ($this, $state, $comp) => {
     let $ply, $tstate, $iter, $val, $actions, $count, $a, $v, var$11, $index;
-    $ply = 5;
+    $ply = 3;
     $this.$computer = $comp;
     $tstate = t_Board__init_($state);
     $iter = $state.$emptySquareIterator();
@@ -1707,7 +1720,7 @@ t_AlphaBeta_bestMove = ($this, $state, $comp) => {
     $actions = ju_ArrayList__init_1();
     $count = $tstate.$numberEmptySquares();
     if ($count < 45)
-        $ply = 6;
+        $ply = 4;
     if ($count < 35)
         $ply = $ply + 1 | 0;
     if ($count < 20)
@@ -1736,6 +1749,8 @@ t_AlphaBeta_bestMove = ($this, $state, $comp) => {
 },
 t_AlphaBeta_maxValue = ($this, $state, $depth, $alpha, $beta) => {
     let $tstate, $iter, $maxValue, $action;
+    if (Long_ge(jl_System_currentTimeMillis(), $this.$deadlineMs))
+        return $state.$evaluate($this.$computer);
     $tstate = t_Board__init_($state);
     $iter = $state.$emptySquareIterator();
     if ($tstate.$isTerminal()) {
@@ -1761,6 +1776,8 @@ t_AlphaBeta_maxValue = ($this, $state, $depth, $alpha, $beta) => {
 },
 t_AlphaBeta_minValue = ($this, $state, $depth, $alpha, $beta) => {
     let $tstate, $iter, $minValue, $action;
+    if (Long_ge(jl_System_currentTimeMillis(), $this.$deadlineMs))
+        return $state.$evaluate($this.$computer);
     $tstate = t_Board__init_($state);
     $iter = $state.$emptySquareIterator();
     if ($tstate.$isTerminal() && $tstate.$playerWon(t_Player_other($this.$computer)))
@@ -2334,7 +2351,7 @@ jl_String, 0, jl_Object, [ji_Serializable, jl_Comparable, jl_CharSequence], 0, 3
 jl_NegativeArraySizeException, 0, jl_RuntimeException, [], 0, 3, 0, 0, ["$_init_", $rt_wrapFunction0(jl_NegativeArraySizeException__init_)],
 t_Board$2, 0, jl_Object, [], 32, 0, 0, t_Board$2_$callClinit, 0,
 t_Line$Axis, 0, jl_Enum, [], 12, 0, 0, t_Line$Axis_$callClinit, 0,
-t_AlphaBeta, 0, jl_Object, [], 0, 3, 0, 0, ["$_init_", $rt_wrapFunction0(t_AlphaBeta__init_), "$bestMove", $rt_wrapFunction2(t_AlphaBeta_bestMove), "$maxValue", $rt_wrapFunction4(t_AlphaBeta_maxValue), "$minValue", $rt_wrapFunction4(t_AlphaBeta_minValue)],
+t_AlphaBeta, 0, jl_Object, [], 0, 3, 0, 0, ["$_init_", $rt_wrapFunction0(t_AlphaBeta__init_), "$setTimeBudgetMs", $rt_wrapFunction1(t_AlphaBeta_setTimeBudgetMs), "$bestMove", $rt_wrapFunction2(t_AlphaBeta_bestMove), "$maxValue", $rt_wrapFunction4(t_AlphaBeta_maxValue), "$minValue", $rt_wrapFunction4(t_AlphaBeta_minValue)],
 jl_IllegalArgumentException, 0, jl_RuntimeException, [], 0, 3, 0, 0, ["$_init_", $rt_wrapFunction0(jl_IllegalArgumentException__init_1), "$_init_0", $rt_wrapFunction1(jl_IllegalArgumentException__init_2)],
 t_Player, 0, jl_Enum, [], 12, 3, 0, t_Player_$callClinit, ["$other", $rt_wrapFunction0(t_Player_other), "$toString", $rt_wrapFunction0(t_Player_toString)],
 t_Coordinate, 0, jl_Object, [], 0, 3, 0, t_Coordinate_$callClinit, ["$getX", $rt_wrapFunction0(t_Coordinate_getX0), "$getY", $rt_wrapFunction0(t_Coordinate_getY0), "$getZ", $rt_wrapFunction0(t_Coordinate_getZ0), "$position1", $rt_wrapFunction0(t_Coordinate_position0)],

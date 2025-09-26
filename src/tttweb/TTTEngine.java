@@ -14,6 +14,8 @@ public class TTTEngine {
             throw new IllegalArgumentException("Invalid player: " + playerChar);
         }
         AlphaBeta search = new AlphaBeta();
+        // Time-budget: 500ms per AI move in browser
+        search.setTimeBudgetMs(500);
         Coordinate move = search.bestMove(board, player);
         if (move == null) {
             return null;
