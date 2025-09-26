@@ -3,7 +3,7 @@
 Live: https://games.ashvinganesan.me/3dttt/
 
 ## Overview
-This project brings my high‑school Alpha‑Beta Tic‑Tac‑Toe project to the web with an interactive 3D board. I originally wrote the AI four years ago in an AI course at Woodside Priory High School taught by Mr. Richard Paige. The original was chat/; here I transformed it into a playable WebGL game with minor animations, and deployment through GitHub Pages.
+This project brings my high‑school Alpha‑Beta Tic‑Tac‑Toe project to the web with an interactive 3D board. I originally wrote the AI four years ago in an AI course at Woodside Priory High School taught by Mr. Richard Paige. I transformed the original  chat based game into a playable WebGL game with minor animations, and deployment through GitHub Pages.
 
 ## Features
 - 4×4×4 board with generic win‑line detection
