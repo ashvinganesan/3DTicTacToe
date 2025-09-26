@@ -37,9 +37,6 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 appContainer.appendChild(renderer.domElement);
 
-// Create orbit controls
-const controls = createSimpleOrbitControls(camera, renderer.domElement);
-
 // Minimal orbit controls replacement (avoid external OrbitControls dependency)
 function createSimpleOrbitControls(camera, domElement) {
   const state = {
