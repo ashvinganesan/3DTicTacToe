@@ -201,7 +201,6 @@ function pickCellUnderPointer() {
 }
 
 function onPointerDown(e) {
-  e.preventDefault();
   pointerDown = true;
   movedBeyondTolerance = false;
   pointerDownPosX = e.clientX;
@@ -216,7 +215,6 @@ function onPointerDown(e) {
 }
 
 function onPointerUp(e) {
-  e.preventDefault();
   const startedOnCell = pointerDown && pointerDownCell !== null;
   pointerDown = false;
   // Update mouse from the up event then pick
@@ -266,6 +264,7 @@ function onPointerUp(e) {
 renderer.domElement.addEventListener('pointermove', onPointerMove);
 renderer.domElement.addEventListener('pointerdown', onPointerDown);
 renderer.domElement.addEventListener('pointerup', onPointerUp);
+renderer.domElement.addEventListener('pointercancel', () => { pointerDown = false; pointerDownCell = null; movedBeyondTolerance = false; });
 
 // Hover effect
 function updateHover() {
