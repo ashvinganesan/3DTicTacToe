@@ -433,6 +433,7 @@ function applyAIMove(x, y, z) {
 
 function getBestMoveFn() {
   if (typeof window.ttt_bestMove === 'function') return window.ttt_bestMove;
+  if (typeof window.$rt_exports !== 'undefined' && typeof window.$rt_exports.ttt_bestMove === 'function') return window.$rt_exports.ttt_bestMove;
   if (typeof window.WebEntry !== 'undefined' && typeof window.WebEntry.ttt_bestMove === 'function') return window.WebEntry.ttt_bestMove;
   if (typeof window.tttweb_WebEntry !== 'undefined' && typeof window.tttweb_WebEntry.ttt_bestMove === 'function') return window.tttweb_WebEntry.ttt_bestMove;
   return null;
@@ -446,7 +447,7 @@ function aiMove() {
   }
   try {
     const boardStr = boardToEngineString();
-    const res = bestMoveFn(boardStr, 'O');
+    const res = bestMoveFn(boardStr, 'O'.charCodeAt(0));
     if (!res || typeof res[0] !== 'number') {
       console.warn('Engine returned invalid move:', res);
       return;
