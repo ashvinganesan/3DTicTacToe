@@ -174,6 +174,8 @@ for (let z = 0; z < BOARD_SIZE; z += 1) {
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 let hoveredCell = null;
+let pointerDown = false;
+let pointerDownCell = null;
 
 function onPointerMove(event) {
   const rect = renderer.domElement.getBoundingClientRect();
@@ -181,45 +183,61 @@ function onPointerMove(event) {
   mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 }
 
-function onClick() {
-  if (gameOver) return;
-  if (useAI && currentPlayer === PLAYER_O) {
-    // Ignore human clicks during AI's turn
-    return;
-  }
+function pickCellUnderPointer() {
   raycaster.setFromCamera(mouse, camera);
   const intersections = raycaster.intersectObjects(cells);
-  if (intersections.length === 0) return;
-  const mesh = intersections[0].object;
-  const { x, y, z } = mesh.userData;
-  if (getCell(x, y, z) !== EMPTY) return;
+  return intersections.length > 0 ? intersections[0].object : null;
+}
 
+function onMouseDown() {
+  pointerDown = true;
+  pointerDownCell = pickCellUnderPointer();
+}
+
+function onMouseUp() {
+  const startedOnCell = pointerDown && pointerDownCell !== null;
+  pointerDown = false;
+  const endCell = pickCellUnderPointer();
+  if (!startedOnCell || endCell !== pointerDownCell) {
+    pointerDownCell = null;
+    return;
+  }
+  if (gameOver) return;
+  if (useAI && currentPlayer === PLAYER_O) return;
+  const mesh = endCell;
+  const { x, y, z } = mesh.userData;
+  if (getCell(x, y, z) !== EMPTY) {
+    pointerDownCell = null;
+    return;
+  }
   setCell(x, y, z, currentPlayer);
   mesh.material = currentPlayer === PLAYER_X ? xMaterial.clone() : oMaterial.clone();
   moveCount += 1;
-
   const line = checkWin();
   if (line) {
     setStatusText(`${currentPlayer === PLAYER_X ? 'X' : 'O'} wins!`);
     highlightWinningLine(line);
     gameOver = true;
+    pointerDownCell = null;
     return;
   }
   if (moveCount === BOARD_SIZE * BOARD_SIZE * BOARD_SIZE) {
     setStatusText('Draw');
     gameOver = true;
+    pointerDownCell = null;
     return;
   }
-
   currentPlayer = currentPlayer === PLAYER_X ? PLAYER_O : PLAYER_X;
   setStatusText(`Turn: ${currentPlayer === PLAYER_X ? 'X' : 'O'}`);
+  pointerDownCell = null;
   if (useAI && currentPlayer === PLAYER_O && !gameOver) {
     setTimeout(aiMove, 0);
   }
 }
 
-window.addEventListener('mousemove', onPointerMove);
-window.addEventListener('click', onClick);
+renderer.domElement.addEventListener('mousemove', onPointerMove);
+renderer.domElement.addEventListener('mousedown', onMouseDown);
+renderer.domElement.addEventListener('mouseup', onMouseUp);
 
 // Hover effect
 function updateHover() {
