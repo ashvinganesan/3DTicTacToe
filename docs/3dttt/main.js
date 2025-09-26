@@ -1,5 +1,5 @@
 /* 3D Tic-Tac-Toe, 3x3x3, two-player hotseat */
-if (typeof THREE === 'undefined' || typeof THREE.OrbitControls === 'undefined') {
+if (typeof THREE === 'undefined') {
   const el = document.getElementById('status') || document.body;
   if (el) el.textContent = 'Failed to load Three.js/OrbitControls. Check network/CORS.';
   console.error('3DTTT: Missing THREE or OrbitControls');
@@ -28,9 +28,66 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 appContainer.appendChild(renderer.domElement);
 
-const controls = new THREE.OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
-controls.target.set(0, 0, 0);
+// Minimal orbit controls replacement (avoid external OrbitControls dependency)
+function createSimpleOrbitControls(camera, domElement) {
+  const state = {
+    dragging: false,
+    startX: 0,
+    startY: 0,
+    theta: Math.PI / 4,
+    phi: Math.PI / 4,
+    radius: 8,
+    target: new THREE.Vector3(0, 0, 0)
+  };
+
+  function updateCamera() {
+    const eps = 0.001;
+    state.phi = Math.max(eps, Math.min(Math.PI - eps, state.phi));
+    const sinPhi = Math.sin(state.phi);
+    camera.position.x = state.target.x + state.radius * sinPhi * Math.sin(state.theta);
+    camera.position.y = state.target.y + state.radius * Math.cos(state.phi);
+    camera.position.z = state.target.z + state.radius * sinPhi * Math.cos(state.theta);
+    camera.lookAt(state.target);
+  }
+
+  function onMouseDown(e) {
+    state.dragging = true;
+    state.startX = e.clientX;
+    state.startY = e.clientY;
+  }
+
+  function onMouseMove(e) {
+    if (!state.dragging) return;
+    const dx = e.clientX - state.startX;
+    const dy = e.clientY - state.startY;
+    state.startX = e.clientX;
+    state.startY = e.clientY;
+    const rotSpeed = 0.005;
+    state.theta -= dx * rotSpeed;
+    state.phi -= dy * rotSpeed;
+    updateCamera();
+  }
+
+  function onMouseUp() {
+    state.dragging = false;
+  }
+
+  function onWheel(e) {
+    const zoomFactor = 1 + Math.sign(e.deltaY) * 0.1;
+    state.radius = Math.max(2, Math.min(50, state.radius * zoomFactor));
+    updateCamera();
+  }
+
+  domElement.addEventListener('mousedown', onMouseDown);
+  window.addEventListener('mousemove', onMouseMove);
+  window.addEventListener('mouseup', onMouseUp);
+  domElement.addEventListener('wheel', onWheel, { passive: true });
+
+  updateCamera();
+  return { update: updateCamera, target: state.target };
+}
+
+const controls = createSimpleOrbitControls(camera, renderer.domElement);
 
 // Lights
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
