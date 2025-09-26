@@ -170,6 +170,54 @@ const oMaterial = new THREE.MeshStandardMaterial({ color: 0x5aa7ff, metalness: 0
 
 const cells = []; // {mesh, x,y,z}
 const placedMarkers = []; // meshes for X/O markers to clean up on reset
+const activeAnimations = [];
+
+function clamp01(v) { return v < 0 ? 0 : (v > 1 ? 1 : v); }
+function easeOutBack(t) {
+  const c1 = 1.70158; const c3 = c1 + 1;
+  return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
+}
+
+function addPopInAnimation(object3d, durationMs = 350) {
+  if (!object3d) return;
+  const originalScale = object3d.scale.clone();
+  object3d.scale.set(0.01, 0.01, 0.01);
+  activeAnimations.push({ kind: 'pop', obj: object3d, t0: performance.now(), dur: durationMs, originalScale });
+}
+
+function flashTileColor(tileMesh, durationMs = 450) {
+  if (!tileMesh || !tileMesh.material) return;
+  activeAnimations.push({ kind: 'flash', mesh: tileMesh, t0: performance.now(), dur: durationMs });
+}
+
+function updateAnimations() {
+  if (activeAnimations.length === 0) return;
+  const now = performance.now();
+  for (let i = activeAnimations.length - 1; i >= 0; i -= 1) {
+    const anim = activeAnimations[i];
+    const p = clamp01((now - anim.t0) / anim.dur);
+    if (anim.kind === 'pop' && anim.obj) {
+      const s = easeOutBack(p);
+      anim.obj.scale.set(
+        anim.originalScale.x * s,
+        anim.originalScale.y * s,
+        anim.originalScale.z * s
+      );
+    } else if (anim.kind === 'flash' && anim.mesh && anim.mesh.material) {
+      // Lerp from hover color back to base color over time
+      const c = new THREE.Color();
+      c.copy(hoverMaterial.color).lerp(baseMaterial.color, p);
+      anim.mesh.material.color.set(c);
+    }
+    if (p >= 1) {
+      // Ensure final state for flash returns to base color
+      if (anim.kind === 'flash' && anim.mesh && anim.mesh.material) {
+        anim.mesh.material.color.set(baseMaterial.color);
+      }
+      activeAnimations.splice(i, 1);
+    }
+  }
+}
 
 function createXMarker() {
   const group = new THREE.Group();
@@ -303,6 +351,8 @@ function onPointerUp(e) {
   marker.position.set(mesh.position.x, mesh.position.y + (tileThickness * 0.6), mesh.position.z);
   scene.add(marker);
   placedMarkers.push(marker);
+  addPopInAnimation(marker);
+  flashTileColor(mesh);
   moveCount += 1;
   const line = checkWin();
   if (line) {
@@ -539,6 +589,7 @@ function animate() {
   requestAnimationFrame(animate);
   controls.update();
   updateHover();
+  updateAnimations();
   renderer.render(scene, camera);
 }
 animate();
@@ -570,6 +621,8 @@ function applyAIMove(x, y, z) {
       marker.position.set(cell.position.x, cell.position.y + (tileThickness * 0.6), cell.position.z);
       scene.add(marker);
       placedMarkers.push(marker);
+      addPopInAnimation(marker);
+      flashTileColor(cell);
       break;
     }
   }
