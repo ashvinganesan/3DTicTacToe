@@ -99,8 +99,11 @@ function createSimpleOrbitControls(camera, domElement) {
   window.addEventListener('pointerup', onMouseUp);
   domElement.addEventListener('wheel', onWheel, { passive: true });
 
-  updateCamera();
-  return { update: updateCamera, target: state.target };
+  return {
+    update: updateCamera,
+    target: state.target,
+    isDragging: () => state.dragging
+  };
 }
 
 const controls = createSimpleOrbitControls(camera, renderer.domElement);
@@ -231,7 +234,7 @@ function onPointerUp(e) {
     mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
   }
   const endCell = pickCellUnderPointer();
-  if (!startedOnCell || movedBeyondTolerance || endCell !== pointerDownCell) {
+  if (!startedOnCell || movedBeyondTolerance || endCell !== pointerDownCell || controls.isDragging()) {
     pointerDownCell = null;
     return;
   }
