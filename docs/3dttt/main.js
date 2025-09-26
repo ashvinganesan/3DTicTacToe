@@ -301,6 +301,9 @@ renderer.domElement.addEventListener('pointercancel', () => { pointerDown = fals
 // Hover effect
 function updateHover() {
   if (gameOver) return;
+  if (typeof controls !== 'undefined' && controls.isDragging && controls.isDragging()) {
+    return;
+  }
   raycaster.setFromCamera(mouse, camera);
   const intersections = raycaster.intersectObjects(cells);
   let newHover = null;
@@ -590,10 +593,5 @@ function aiMove() {
 }
 
 // Render loop
-function animate() {
-  requestAnimationFrame(animate);
-  controls.update();
-  renderer.render(scene, camera);
-}
-animate();
+// Remove duplicate render loop (we already animate with hover at ~line 495)
 
