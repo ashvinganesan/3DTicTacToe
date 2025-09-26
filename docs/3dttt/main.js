@@ -134,22 +134,23 @@ scene.add(cellGroup);
 const cellSize = 0.9;
 const cellSpacing = 1.2;
 const half = (BOARD_SIZE - 1) / 2;
-const cubeGeometry = new THREE.BoxGeometry(cellSize, cellSize, cellSize);
+const tileGeometry = new THREE.PlaneGeometry(cellSize, cellSize);
 const baseMaterial = new THREE.MeshStandardMaterial({ color: 0x2a2f3a, metalness: 0.1, roughness: 0.8 });
-const hoverMaterial = new THREE.MeshStandardMaterial({ color: 0x3a4050, metalness: 0.1, roughness: 0.7 });
-const xMaterial = new THREE.MeshStandardMaterial({ color: 0xff5a5a, metalness: 0.2, roughness: 0.5 });
-const oMaterial = new THREE.MeshStandardMaterial({ color: 0x5aa7ff, metalness: 0.2, roughness: 0.5 });
+const hoverMaterial = new THREE.MeshStandardMaterial({ color: 0x3a4050, metalness: 0.1, roughness: 0.7, side: THREE.DoubleSide });
+const xMaterial = new THREE.MeshStandardMaterial({ color: 0xff5a5a, metalness: 0.2, roughness: 0.5, side: THREE.DoubleSide });
+const oMaterial = new THREE.MeshStandardMaterial({ color: 0x5aa7ff, metalness: 0.2, roughness: 0.5, side: THREE.DoubleSide });
 
 const cells = []; // {mesh, x,y,z}
 
 for (let z = 0; z < BOARD_SIZE; z += 1) {
   for (let y = 0; y < BOARD_SIZE; y += 1) {
     for (let x = 0; x < BOARD_SIZE; x += 1) {
-      const mesh = new THREE.Mesh(cubeGeometry, baseMaterial.clone());
+      const mesh = new THREE.Mesh(tileGeometry, baseMaterial.clone());
+      mesh.rotation.x = -Math.PI / 2; // lay flat (XZ plane)
       mesh.position.set(
         (x - half) * cellSpacing,
-        (y - half) * cellSpacing,
-        (z - half) * cellSpacing
+        (z - half) * cellSpacing, // height by layer
+        (y - half) * cellSpacing  // row maps to world Z
       );
       mesh.userData = { x, y, z };
       cellGroup.add(mesh);
@@ -159,10 +160,10 @@ for (let z = 0; z < BOARD_SIZE; z += 1) {
 }
 
 // Grid helpers per layer
-const gridColor = 0x4a5063;
+const gridColor = 0x656b7f;
 for (let z = 0; z < BOARD_SIZE; z += 1) {
   const grid = new THREE.GridHelper(BOARD_SIZE * cellSpacing, BOARD_SIZE, gridColor, gridColor);
-  grid.rotation.x = Math.PI / 2;
+  grid.rotation.x = 0; // Grid lies in XZ plane by default
   grid.position.set(0, (z - half) * cellSpacing, 0);
   grid.material.opacity = 0.25;
   grid.material.transparent = true;
