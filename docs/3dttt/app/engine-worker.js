@@ -19,19 +19,20 @@ self.onmessage = function(e) {
     }
     try {
       const board = msg.board;
-      let player = (typeof msg.player === 'number' ? String.fromCharCode(msg.player) : (msg.player || 'O'));
+      // Normalize to char code and string both
+      const playerCode = (typeof msg.player === 'number') ? msg.player : (typeof msg.player === 'string' && msg.player.length ? msg.player.charCodeAt(0) : 'O'.charCodeAt(0));
+      const playerStr = String.fromCharCode(playerCode);
       
       // Ensure player is valid - default to 'O' if empty
-      if (!player || (typeof player === 'string' && player.trim() === '')) {
+      if (!playerStr || (typeof playerStr === 'string' && playerStr.trim() === '')) {
         console.log('Worker: Invalid player, defaulting to O');
-        player = 'O';
+        playerStr = 'O';
       }
       
       // Try both forms to satisfy TeaVM interop
-      let res = fn(board, player); // string first
+      let res = fn(board, playerCode); // prefer numeric char code first
       if (!res || typeof res[0] !== 'number') {
-        const code = player.charCodeAt ? player.charCodeAt(0) : player;
-        res = fn(board, code);
+        res = fn(board, playerStr);
       }
       if (res && typeof res[0] === 'number') {
         self.postMessage({ type: 'bestMoveResult', ok: true, move: { x: res[0], y: res[1], z: res[2] } });

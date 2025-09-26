@@ -41,6 +41,7 @@ appContainer.appendChild(renderer.domElement);
 function createSimpleOrbitControls(camera, domElement) {
   const state = {
     dragging: false,
+    isMouseDown: false,
     startX: 0,
     startY: 0,
     theta: Math.PI / 4,
@@ -62,11 +63,15 @@ function createSimpleOrbitControls(camera, domElement) {
 
   function onMouseDown(e) {
     state.dragging = false;
+    state.isMouseDown = true;
     state.startX = e.clientX;
     state.startY = e.clientY;
   }
 
   function onMouseMove(e) {
+    if (!state.isMouseDown || !(e.buttons & 1)) {
+      return;
+    }
     const dx = e.clientX - state.startX;
     const dy = e.clientY - state.startY;
     if (!state.dragging) {
@@ -90,6 +95,7 @@ function createSimpleOrbitControls(camera, domElement) {
 
   function onMouseUp() {
     state.dragging = false;
+    state.isMouseDown = false;
   }
 
   function onWheel(e) {
