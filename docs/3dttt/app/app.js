@@ -617,7 +617,7 @@ t_TTTEngine_bestMove = ($boardString, $playerChar) => {
     if ($player === null)
         $rt_throw(jl_IllegalArgumentException__init_((((jl_StringBuilder__init_()).$append1($rt_s(0))).$append0($playerChar)).$toString()));
     $search = t_AlphaBeta__init_0();
-    $search.$setTimeBudgetMs(500);
+    $search.$setTimeBudgetMs(1200);
     $move = $search.$bestMove($board, $player);
     if ($move === null)
         return null;
@@ -1712,7 +1712,7 @@ t_AlphaBeta_setTimeBudgetMs = ($this, $timeBudgetMs) => {
 },
 t_AlphaBeta_bestMove = ($this, $state, $comp) => {
     let $ply, $tstate, $iter, $val, $actions, $count, $a, $v, var$11, $index;
-    $ply = 3;
+    $ply = 4;
     $this.$computer = $comp;
     $tstate = t_Board__init_($state);
     $iter = $state.$emptySquareIterator();
@@ -1720,7 +1720,7 @@ t_AlphaBeta_bestMove = ($this, $state, $comp) => {
     $actions = ju_ArrayList__init_1();
     $count = $tstate.$numberEmptySquares();
     if ($count < 45)
-        $ply = 4;
+        $ply = 5;
     if ($count < 35)
         $ply = $ply + 1 | 0;
     if ($count < 20)

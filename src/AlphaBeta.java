@@ -21,7 +21,7 @@ public class AlphaBeta {
         this.deadlineMs = System.currentTimeMillis() + Math.max(0, timeBudgetMs);
     }
     public Coordinate bestMove(Board state, Player comp) {
-        int ply = (Board.N == 4) ? 3 : 5;
+        int ply = (Board.N == 4) ? 4 : 5;
         computer = comp;
         Board tstate =  new Board(state);
         
