@@ -6,6 +6,13 @@
     <title>3D Tic-Tac-Toe</title>
     <link rel="stylesheet" href="./style.css">
     <script src="./vendor/three.min.js"></script>
+    <script>
+      if (typeof window.THREE === 'undefined') {
+        var s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js';
+        document.head.appendChild(s);
+      }
+    </script>
     <script src="./app/app.js"></script>
   </head>
   <body>
