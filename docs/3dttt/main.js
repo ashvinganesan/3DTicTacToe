@@ -48,6 +48,7 @@ function createSimpleOrbitControls(camera, domElement) {
     radius: 8,
     target: new THREE.Vector3(0, 0, 0)
   };
+  const ROTATE_TOLERANCE_PX = 6;
 
   function updateCamera() {
     const eps = 0.001;
@@ -60,20 +61,30 @@ function createSimpleOrbitControls(camera, domElement) {
   }
 
   function onMouseDown(e) {
-    state.dragging = true;
+    state.dragging = false;
     state.startX = e.clientX;
     state.startY = e.clientY;
   }
 
   function onMouseMove(e) {
-    if (!state.dragging) return;
     const dx = e.clientX - state.startX;
     const dy = e.clientY - state.startY;
-    state.startX = e.clientX;
-    state.startY = e.clientY;
+    if (!state.dragging) {
+      if ((dx*dx + dy*dy) < (ROTATE_TOLERANCE_PX * ROTATE_TOLERANCE_PX)) {
+        return;
+      }
+      state.dragging = true;
+      // reset start to current so rotation begins smoothly after threshold
+      state.startX = e.clientX;
+      state.startY = e.clientY;
+      return;
+    }
+    // dragging
     const rotSpeed = 0.005;
     state.theta -= dx * rotSpeed;
     state.phi -= dy * rotSpeed;
+    state.startX = e.clientX;
+    state.startY = e.clientY;
     updateCamera();
   }
 
@@ -234,7 +245,12 @@ function onPointerUp(e) {
     mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
   }
   const endCell = pickCellUnderPointer();
-  if (!startedOnCell || movedBeyondTolerance || endCell !== pointerDownCell || controls.isDragging()) {
+  // Only commit if we did not start rotating the camera
+  if (controls.isDragging()) {
+    pointerDownCell = null;
+    return;
+  }
+  if (!startedOnCell || movedBeyondTolerance || endCell !== pointerDownCell) {
     pointerDownCell = null;
     return;
   }
