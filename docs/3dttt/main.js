@@ -97,7 +97,7 @@ directionalLight.position.set(5, 10, 7);
 scene.add(directionalLight);
 
 // Board state
-const BOARD_SIZE = 3; // 3x3x3
+const BOARD_SIZE = 4; // 4x4x4
 const EMPTY = 0;
 const PLAYER_X = 1; // red
 const PLAYER_O = 2; // blue
@@ -124,6 +124,7 @@ scene.add(cellGroup);
 
 const cellSize = 0.9;
 const cellSpacing = 1.2;
+const half = (BOARD_SIZE - 1) / 2;
 const cubeGeometry = new THREE.BoxGeometry(cellSize, cellSize, cellSize);
 const baseMaterial = new THREE.MeshStandardMaterial({ color: 0x2a2f3a, metalness: 0.1, roughness: 0.8 });
 const hoverMaterial = new THREE.MeshStandardMaterial({ color: 0x3a4050, metalness: 0.1, roughness: 0.7 });
@@ -137,9 +138,9 @@ for (let z = 0; z < BOARD_SIZE; z += 1) {
     for (let x = 0; x < BOARD_SIZE; x += 1) {
       const mesh = new THREE.Mesh(cubeGeometry, baseMaterial.clone());
       mesh.position.set(
-        (x - 1) * cellSpacing,
-        (y - 1) * cellSpacing,
-        (z - 1) * cellSpacing
+        (x - half) * cellSpacing,
+        (y - half) * cellSpacing,
+        (z - half) * cellSpacing
       );
       mesh.userData = { x, y, z };
       cellGroup.add(mesh);
@@ -198,6 +199,9 @@ function onClick() {
 
   currentPlayer = currentPlayer === PLAYER_X ? PLAYER_O : PLAYER_X;
   setStatusText(`Turn: ${currentPlayer === PLAYER_X ? 'X' : 'O'}`);
+  if (useAI && currentPlayer === PLAYER_O && !gameOver) {
+    setTimeout(aiMove, 0);
+  }
 }
 
 window.addEventListener('mousemove', onPointerMove);
@@ -227,51 +231,73 @@ function updateHover() {
   hoveredCell = newHover;
 }
 
-// Winning lines precomputation
+// Winning lines precomputation (generic for BOARD_SIZE)
 const winningLines = [];
 
 function addLine(points) {
   winningLines.push(points);
 }
 
-// Lines along X, Y, Z
-for (let z = 0; z < 3; z += 1) {
-  for (let y = 0; y < 3; y += 1) {
-    addLine([[0, y, z], [1, y, z], [2, y, z]]);
+// Lines along axes
+for (let z = 0; z < BOARD_SIZE; z += 1) {
+  for (let y = 0; y < BOARD_SIZE; y += 1) {
+    const line = [];
+    for (let x = 0; x < BOARD_SIZE; x += 1) line.push([x, y, z]);
+    addLine(line);
   }
 }
-for (let z = 0; z < 3; z += 1) {
-  for (let x = 0; x < 3; x += 1) {
-    addLine([[x, 0, z], [x, 1, z], [x, 2, z]]);
+for (let z = 0; z < BOARD_SIZE; z += 1) {
+  for (let x = 0; x < BOARD_SIZE; x += 1) {
+    const line = [];
+    for (let y = 0; y < BOARD_SIZE; y += 1) line.push([x, y, z]);
+    addLine(line);
   }
 }
-for (let y = 0; y < 3; y += 1) {
-  for (let x = 0; x < 3; x += 1) {
-    addLine([[x, y, 0], [x, y, 1], [x, y, 2]]);
+for (let y = 0; y < BOARD_SIZE; y += 1) {
+  for (let x = 0; x < BOARD_SIZE; x += 1) {
+    const line = [];
+    for (let z = 0; z < BOARD_SIZE; z += 1) line.push([x, y, z]);
+    addLine(line);
   }
 }
 
-// Plane diagonals (xy for each z)
-for (let z = 0; z < 3; z += 1) {
-  addLine([[0, 0, z], [1, 1, z], [2, 2, z]]);
-  addLine([[2, 0, z], [1, 1, z], [0, 2, z]]);
+// Plane diagonals
+for (let z = 0; z < BOARD_SIZE; z += 1) {
+  const d1 = [], d2 = [];
+  for (let i = 0; i < BOARD_SIZE; i += 1) {
+    d1.push([i, i, z]);
+    d2.push([BOARD_SIZE - 1 - i, i, z]);
+  }
+  addLine(d1); addLine(d2);
 }
-// Plane diagonals (xz for each y)
-for (let y = 0; y < 3; y += 1) {
-  addLine([[0, y, 0], [1, y, 1], [2, y, 2]]);
-  addLine([[2, y, 0], [1, y, 1], [0, y, 2]]);
+for (let y = 0; y < BOARD_SIZE; y += 1) {
+  const d1 = [], d2 = [];
+  for (let i = 0; i < BOARD_SIZE; i += 1) {
+    d1.push([i, y, i]);
+    d2.push([BOARD_SIZE - 1 - i, y, i]);
+  }
+  addLine(d1); addLine(d2);
 }
-// Plane diagonals (yz for each x)
-for (let x = 0; x < 3; x += 1) {
-  addLine([[x, 0, 0], [x, 1, 1], [x, 2, 2]]);
-  addLine([[x, 2, 0], [x, 1, 1], [x, 0, 2]]);
+for (let x = 0; x < BOARD_SIZE; x += 1) {
+  const d1 = [], d2 = [];
+  for (let i = 0; i < BOARD_SIZE; i += 1) {
+    d1.push([x, i, i]);
+    d2.push([x, BOARD_SIZE - 1 - i, i]);
+  }
+  addLine(d1); addLine(d2);
 }
 
 // Space diagonals
-addLine([[0, 0, 0], [1, 1, 1], [2, 2, 2]]);
-addLine([[2, 0, 0], [1, 1, 1], [0, 2, 2]]);
-addLine([[0, 2, 0], [1, 1, 1], [2, 0, 2]]);
-addLine([[2, 2, 0], [1, 1, 1], [0, 0, 2]]);
+{
+  const d1 = [], d2 = [], d3 = [], d4 = [];
+  for (let i = 0; i < BOARD_SIZE; i += 1) {
+    d1.push([i, i, i]);
+    d2.push([i, i, BOARD_SIZE - 1 - i]);
+    d3.push([i, BOARD_SIZE - 1 - i, i]);
+    d4.push([BOARD_SIZE - 1 - i, i, i]);
+  }
+  addLine(d1); addLine(d2); addLine(d3); addLine(d4);
+}
 
 function checkWin() {
   for (const line of winningLines) {
@@ -304,6 +330,8 @@ function highlightWinningLine(line) {
 // UI
 const statusEl = document.getElementById('status');
 const resetBtn = document.getElementById('reset');
+const aiToggleBtn = document.getElementById('aiToggle');
+let useAI = false; // AI plays O
 
 function setStatusText(text) {
   statusEl.textContent = text;
@@ -323,6 +351,15 @@ function resetGame() {
 }
 
 resetBtn.addEventListener('click', resetGame);
+if (aiToggleBtn) {
+  aiToggleBtn.addEventListener('click', () => {
+    useAI = !useAI;
+    aiToggleBtn.textContent = `AI: ${useAI ? 'On' : 'Off'}`;
+    if (useAI && currentPlayer === PLAYER_O && !gameOver) {
+      setTimeout(aiMove, 0);
+    }
+  });
+}
 
 let gameOver = false;
 
@@ -342,4 +379,74 @@ function animate() {
 }
 animate();
 
+// --- AI integration ---
+function boardToEngineString() {
+  let s = '';
+  for (let z = 0; z < BOARD_SIZE; z += 1) {
+    for (let y = 0; y < BOARD_SIZE; y += 1) {
+      for (let x = 0; x < BOARD_SIZE; x += 1) {
+        const v = getCell(x, y, z);
+        s += v === EMPTY ? '.' : (v === PLAYER_X ? 'X' : 'O');
+      }
+    }
+  }
+  return s;
+}
+
+function applyAIMove(x, y, z) {
+  setCell(x, y, z, PLAYER_O);
+  for (const cell of cells) {
+    const d = cell.userData;
+    if (d.x === x && d.y === y && d.z === z) {
+      cell.material = oMaterial.clone();
+      break;
+    }
+  }
+  moveCount += 1;
+  const line = checkWin();
+  if (line) {
+    setStatusText('O wins!');
+    highlightWinningLine(line);
+    gameOver = true;
+    return;
+  }
+  if (moveCount === BOARD_SIZE * BOARD_SIZE * BOARD_SIZE) {
+    setStatusText('Draw');
+    gameOver = true;
+    return;
+  }
+  currentPlayer = PLAYER_X;
+  setStatusText('Turn: X');
+}
+
+function getBestMoveFn() {
+  if (typeof window.ttt_bestMove === 'function') return window.ttt_bestMove;
+  if (typeof window.WebEntry !== 'undefined' && typeof window.WebEntry.ttt_bestMove === 'function') return window.WebEntry.ttt_bestMove;
+  if (typeof window.tttweb_WebEntry !== 'undefined' && typeof window.tttweb_WebEntry.ttt_bestMove === 'function') return window.tttweb_WebEntry.ttt_bestMove;
+  return null;
+}
+
+function aiMove() {
+  const bestMoveFn = getBestMoveFn();
+  if (!bestMoveFn) {
+    console.warn('AI engine not available');
+    return;
+  }
+  try {
+    const boardStr = boardToEngineString();
+    const res = bestMoveFn(boardStr, 'O');
+    if (!res || typeof res[0] !== 'number') {
+      console.warn('Engine returned invalid move:', res);
+      return;
+    }
+    const [mx, my, mz] = res;
+    if (getCell(mx, my, mz) !== EMPTY) {
+      console.warn('Engine suggested occupied cell, ignoring');
+      return;
+    }
+    applyAIMove(mx, my, mz);
+  } catch (e) {
+    console.error('AI move failed:', e);
+  }
+}
 
