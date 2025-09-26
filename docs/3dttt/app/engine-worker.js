@@ -21,13 +21,7 @@ self.onmessage = function(e) {
       const board = msg.board;
       // Normalize to char code and string both
       const playerCode = (typeof msg.player === 'number') ? msg.player : (typeof msg.player === 'string' && msg.player.length ? msg.player.charCodeAt(0) : 'O'.charCodeAt(0));
-      const playerStr = String.fromCharCode(playerCode);
-      
-      // Ensure player is valid - default to 'O' if empty
-      if (!playerStr || (typeof playerStr === 'string' && playerStr.trim() === '')) {
-        console.log('Worker: Invalid player, defaulting to O');
-        playerStr = 'O';
-      }
+      let playerStr = String.fromCharCode(playerCode);
       
       // Try both forms to satisfy TeaVM interop
       let res = fn(board, playerCode); // prefer numeric char code first
