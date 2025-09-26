@@ -90,6 +90,13 @@ function createSimpleOrbitControls(camera, domElement) {
   domElement.addEventListener('mousedown', onMouseDown);
   window.addEventListener('mousemove', onMouseMove);
   window.addEventListener('mouseup', onMouseUp);
+  // Pointer events for broader device support
+  if (domElement && domElement.style) {
+    domElement.style.touchAction = 'none';
+  }
+  domElement.addEventListener('pointerdown', onMouseDown);
+  window.addEventListener('pointermove', onMouseMove);
+  window.addEventListener('pointerup', onMouseUp);
   domElement.addEventListener('wheel', onWheel, { passive: true });
 
   updateCamera();
@@ -261,9 +268,9 @@ function onPointerUp(e) {
   }
 }
 
-renderer.domElement.addEventListener('pointermove', onPointerMove);
-renderer.domElement.addEventListener('pointerdown', onPointerDown);
-renderer.domElement.addEventListener('pointerup', onPointerUp);
+renderer.domElement.addEventListener('pointermove', onPointerMove, { passive: true });
+renderer.domElement.addEventListener('pointerdown', onPointerDown, { passive: true });
+renderer.domElement.addEventListener('pointerup', onPointerUp, { passive: true });
 renderer.domElement.addEventListener('pointercancel', () => { pointerDown = false; pointerDownCell = null; movedBeyondTolerance = false; });
 
 // Hover effect
