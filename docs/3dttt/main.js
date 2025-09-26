@@ -425,7 +425,7 @@ let engineWorker = null;
 function ensureWorker() {
   if (!engineWorker) {
     try {
-      engineWorker = new Worker('./app/engine-worker.js');
+      engineWorker = new Worker('./app/engine-worker.js?v=4');
       engineWorker.onmessage = (e) => {
         const msg = e.data || {};
         if (msg.type === 'bestMoveResult') {
@@ -553,7 +553,7 @@ function aiMove() {
   const bestMoveFn = getBestMoveFn();
   ensureWorker();
   if (engineWorker) {
-    engineWorker.postMessage({ type: 'bestMove', board: boardToEngineString(), player: 'O' });
+    engineWorker.postMessage({ type: 'bestMove', board: boardToEngineString(), player: 'O'.charCodeAt(0) });
     return;
   }
   if (!bestMoveFn) {
