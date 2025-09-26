@@ -19,7 +19,14 @@ self.onmessage = function(e) {
     }
     try {
       const board = msg.board;
-      const player = msg.player || 'O';
+      let player = msg.player || 'O';
+      
+      // Ensure player is valid - default to 'O' if empty
+      if (!player || (typeof player === 'string' && player.trim() === '')) {
+        console.log('Worker: Invalid player, defaulting to O');
+        player = 'O';
+      }
+      
       let res = fn(board, player); // prefer string first
       if (!res || typeof res[0] !== 'number') {
         res = fn(board, player.charCodeAt ? player.charCodeAt(0) : player);
