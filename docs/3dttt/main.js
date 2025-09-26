@@ -131,11 +131,11 @@ function setCell(x, y, z, value) {
 const cellGroup = new THREE.Group();
 scene.add(cellGroup);
 
-const cellSize = 0.9;
-const cellSpacing = 1.2;
+const cellSize = 0.75; // smaller tiles
+const cellSpacing = 1.0; // tighter spacing to leave visible gaps
 const half = (BOARD_SIZE - 1) / 2;
 const tileGeometry = new THREE.PlaneGeometry(cellSize, cellSize);
-const baseMaterial = new THREE.MeshStandardMaterial({ color: 0x2a2f3a, metalness: 0.1, roughness: 0.8 });
+const baseMaterial = new THREE.MeshStandardMaterial({ color: 0x2a2f3a, metalness: 0.1, roughness: 0.8, transparent: true, opacity: 0.6, side: THREE.DoubleSide });
 const hoverMaterial = new THREE.MeshStandardMaterial({ color: 0x3a4050, metalness: 0.1, roughness: 0.7, side: THREE.DoubleSide });
 const xMaterial = new THREE.MeshStandardMaterial({ color: 0xff5a5a, metalness: 0.2, roughness: 0.5, side: THREE.DoubleSide });
 const oMaterial = new THREE.MeshStandardMaterial({ color: 0x5aa7ff, metalness: 0.2, roughness: 0.5, side: THREE.DoubleSide });
