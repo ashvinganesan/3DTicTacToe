@@ -160,20 +160,49 @@ scene.add(cellGroup);
 
 const cellSize = 0.75; // smaller tiles
 const cellSpacing = 1.0; // tighter spacing to leave visible gaps
+const tileThickness = 0.06; // give each layer some thickness
 const half = (BOARD_SIZE - 1) / 2;
-const tileGeometry = new THREE.PlaneGeometry(cellSize, cellSize);
+const tileGeometry = new THREE.BoxGeometry(cellSize, tileThickness, cellSize);
 const baseMaterial = new THREE.MeshStandardMaterial({ color: 0x2a2f3a, metalness: 0.1, roughness: 0.8, transparent: true, opacity: 0.6, side: THREE.DoubleSide });
 const hoverMaterial = new THREE.MeshStandardMaterial({ color: 0x3a4050, metalness: 0.1, roughness: 0.7, side: THREE.DoubleSide });
 const xMaterial = new THREE.MeshStandardMaterial({ color: 0xff5a5a, metalness: 0.2, roughness: 0.5, side: THREE.DoubleSide });
 const oMaterial = new THREE.MeshStandardMaterial({ color: 0x5aa7ff, metalness: 0.2, roughness: 0.5, side: THREE.DoubleSide });
 
 const cells = []; // {mesh, x,y,z}
+const placedMarkers = []; // meshes for X/O markers to clean up on reset
+
+function createXMarker() {
+  const group = new THREE.Group();
+  const barLen = cellSize * 0.7;
+  const barThick = 0.04;
+  const barWide = 0.12;
+  const barGeom = new THREE.BoxGeometry(barLen, barThick, barWide);
+  const m1 = new THREE.Mesh(barGeom, xMaterial.clone());
+  const m2 = new THREE.Mesh(barGeom, xMaterial.clone());
+  m1.rotation.y = Math.PI / 4;
+  m2.rotation.y = -Math.PI / 4;
+  group.add(m1);
+  group.add(m2);
+  return group;
+}
+
+function createOMarker() {
+  const radius = cellSize * 0.28;
+  const tube = 0.05;
+  const tubularSegments = 24;
+  const radialSegments = 12;
+  const torus = new THREE.Mesh(
+    new THREE.TorusGeometry(radius, tube, radialSegments, tubularSegments),
+    oMaterial.clone()
+  );
+  torus.rotation.x = Math.PI / 2; // lay flat
+  return torus;
+}
 
 for (let z = 0; z < BOARD_SIZE; z += 1) {
   for (let y = 0; y < BOARD_SIZE; y += 1) {
     for (let x = 0; x < BOARD_SIZE; x += 1) {
       const mesh = new THREE.Mesh(tileGeometry, baseMaterial.clone());
-      mesh.rotation.x = -Math.PI / 2; // lay flat (XZ plane)
       mesh.position.set(
         (x - half) * cellSpacing,
         (z - half) * cellSpacing, // height by layer
@@ -269,7 +298,11 @@ function onPointerUp(e) {
     return;
   }
   setCell(x, y, z, currentPlayer);
-  mesh.material = currentPlayer === PLAYER_X ? xMaterial.clone() : oMaterial.clone();
+  // Place a 3D marker (X or O) above the tile instead of recoloring the tile
+  const marker = currentPlayer === PLAYER_X ? createXMarker() : createOMarker();
+  marker.position.set(mesh.position.x, mesh.position.y + (tileThickness * 0.6), mesh.position.z);
+  scene.add(marker);
+  placedMarkers.push(marker);
   moveCount += 1;
   const line = checkWin();
   if (line) {
@@ -311,14 +344,15 @@ function updateHover() {
     // Reset non-owned cells to base color
     const { x, y, z } = cell.userData;
     if (getCell(x, y, z) === EMPTY) {
-      cell.material.color.copy(baseMaterial.color);
+      // Soften reset: only set color, preserve opacity/transparency
+      cell.material.color.set(baseMaterial.color);
     }
   }
   if (intersections.length > 0) {
     const mesh = intersections[0].object;
     const { x, y, z } = mesh.userData;
     if (getCell(x, y, z) === EMPTY) {
-      mesh.material.color.copy(hoverMaterial.color);
+      mesh.material.color.set(hoverMaterial.color);
       newHover = mesh;
     }
   }
@@ -468,6 +502,12 @@ function resetGame() {
     cell.material.opacity = 1;
     cell.material.transparent = false;
   }
+  // Remove all placed markers
+  while (placedMarkers.length > 0) {
+    const m = placedMarkers.pop();
+    scene.remove(m);
+    if (m.geometry) m.geometry.dispose?.();
+  }
 }
 
 resetBtn.addEventListener('click', resetGame);
@@ -526,7 +566,10 @@ function applyAIMove(x, y, z) {
   for (const cell of cells) {
     const d = cell.userData;
     if (d.x === x && d.y === y && d.z === z) {
-      cell.material = oMaterial.clone();
+      const marker = createOMarker();
+      marker.position.set(cell.position.x, cell.position.y + (tileThickness * 0.6), cell.position.z);
+      scene.add(marker);
+      placedMarkers.push(marker);
       break;
     }
   }
