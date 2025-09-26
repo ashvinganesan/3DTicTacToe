@@ -154,7 +154,7 @@ const gridColor = 0x4a5063;
 for (let z = 0; z < BOARD_SIZE; z += 1) {
   const grid = new THREE.GridHelper(BOARD_SIZE * cellSpacing, BOARD_SIZE, gridColor, gridColor);
   grid.rotation.x = Math.PI / 2;
-  grid.position.set(0, (z - 1) * cellSpacing, 0);
+  grid.position.set(0, (z - half) * cellSpacing, 0);
   grid.material.opacity = 0.25;
   grid.material.transparent = true;
   scene.add(grid);
@@ -352,7 +352,9 @@ function resetGame() {
 
 resetBtn.addEventListener('click', resetGame);
 if (aiToggleBtn) {
-  aiToggleBtn.addEventListener('click', () => {
+  aiToggleBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     useAI = !useAI;
     aiToggleBtn.textContent = `AI: ${useAI ? 'On' : 'Off'}`;
     if (useAI && currentPlayer === PLAYER_O && !gameOver) {
