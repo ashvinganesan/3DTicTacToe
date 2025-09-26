@@ -6,10 +6,19 @@ if (typeof THREE === 'undefined' || typeof THREE.OrbitControls === 'undefined') 
   throw new Error('Missing THREE/OrbitControls');
 }
 
+window.addEventListener('error', function (e) {
+  const el = document.getElementById('status') || document.body;
+  if (el) el.textContent = 'Error: ' + e.message;
+});
+
 // Scene setup
 const appContainer = document.getElementById('app');
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x0f1116);
+
+// Debug helper to ensure something renders
+const axes = new THREE.AxesHelper(3);
+scene.add(axes);
 
 const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
 camera.position.set(6, 6, 6);
