@@ -25,9 +25,7 @@ const appContainer = document.getElementById('app');
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x0f1116);
 
-// Debug helper to ensure something renders
-const axes = new THREE.AxesHelper(3);
-scene.add(axes);
+// Debug helper removed (hide XYZ axes)
 
 const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
 camera.position.set(6, 6, 6);
