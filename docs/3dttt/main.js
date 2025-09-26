@@ -176,11 +176,22 @@ const mouse = new THREE.Vector2();
 let hoveredCell = null;
 let pointerDown = false;
 let pointerDownCell = null;
+let pointerDownPosX = 0;
+let pointerDownPosY = 0;
+let movedBeyondTolerance = false;
+const DRAG_TOLERANCE_PX = 6;
 
 function onPointerMove(event) {
   const rect = renderer.domElement.getBoundingClientRect();
   mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
   mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+  if (pointerDown) {
+    const dx = event.clientX - pointerDownPosX;
+    const dy = event.clientY - pointerDownPosY;
+    if ((dx*dx + dy*dy) > (DRAG_TOLERANCE_PX * DRAG_TOLERANCE_PX)) {
+      movedBeyondTolerance = true;
+    }
+  }
 }
 
 function pickCellUnderPointer() {
@@ -189,16 +200,21 @@ function pickCellUnderPointer() {
   return intersections.length > 0 ? intersections[0].object : null;
 }
 
-function onMouseDown() {
+function onPointerDown(e) {
+  e.preventDefault();
   pointerDown = true;
+  movedBeyondTolerance = false;
+  pointerDownPosX = e.clientX;
+  pointerDownPosY = e.clientY;
   pointerDownCell = pickCellUnderPointer();
 }
 
-function onMouseUp() {
+function onPointerUp(e) {
+  e.preventDefault();
   const startedOnCell = pointerDown && pointerDownCell !== null;
   pointerDown = false;
   const endCell = pickCellUnderPointer();
-  if (!startedOnCell || endCell !== pointerDownCell) {
+  if (!startedOnCell || movedBeyondTolerance || endCell !== pointerDownCell) {
     pointerDownCell = null;
     return;
   }
@@ -235,9 +251,9 @@ function onMouseUp() {
   }
 }
 
-renderer.domElement.addEventListener('mousemove', onPointerMove);
-renderer.domElement.addEventListener('mousedown', onMouseDown);
-renderer.domElement.addEventListener('mouseup', onMouseUp);
+renderer.domElement.addEventListener('pointermove', onPointerMove);
+renderer.domElement.addEventListener('pointerdown', onPointerDown);
+renderer.domElement.addEventListener('pointerup', onPointerUp);
 
 // Hover effect
 function updateHover() {
