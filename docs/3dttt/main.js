@@ -94,9 +94,9 @@ function createSimpleOrbitControls(camera, domElement) {
   if (domElement && domElement.style) {
     domElement.style.touchAction = 'none';
   }
-  domElement.addEventListener('pointerdown', onMouseDown);
-  window.addEventListener('pointermove', onMouseMove);
-  window.addEventListener('pointerup', onMouseUp);
+  domElement.addEventListener('pointerdown', (e) => { onMouseDown(e); if (domElement.setPointerCapture && e.pointerId !== undefined) { try { domElement.setPointerCapture(e.pointerId); } catch(_){} } });
+  domElement.addEventListener('pointermove', onMouseMove);
+  domElement.addEventListener('pointerup', (e) => { onMouseUp(e); if (domElement.releasePointerCapture && e.pointerId !== undefined) { try { domElement.releasePointerCapture(e.pointerId); } catch(_){} } });
   domElement.addEventListener('wheel', onWheel, { passive: true });
 
   return {
