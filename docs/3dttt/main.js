@@ -447,13 +447,21 @@ function aiMove() {
   const bestMoveFn = getBestMoveFn();
   if (!bestMoveFn) {
     console.warn('AI engine not available');
+    useAI = false;
+    if (aiToggleBtn) aiToggleBtn.textContent = 'AI: Off';
     return;
   }
   try {
     const boardStr = boardToEngineString();
-    const res = bestMoveFn(boardStr, 'O'.charCodeAt(0));
+    let res = bestMoveFn(boardStr, 'O'.charCodeAt(0));
+    if (!res || typeof res[0] !== 'number') {
+      // Try with string player param as fallback
+      res = bestMoveFn(boardStr, 'O');
+    }
     if (!res || typeof res[0] !== 'number') {
       console.warn('Engine returned invalid move:', res);
+      useAI = false;
+      if (aiToggleBtn) aiToggleBtn.textContent = 'AI: Off';
       return;
     }
     const [mx, my, mz] = res;

@@ -118,6 +118,11 @@ $rt_createArray = (cls, sz) => {
 },
 $rt_createCharArray = sz => new $rt_charArrayCls(new Uint16Array(sz)),
 $rt_createIntArray = sz => new $rt_intArrayCls(new Int32Array(sz)),
+$rt_createIntArrayFromData = data => {
+    let buffer = new Int32Array(data.length);
+    buffer.set(data);
+    return new $rt_intArrayCls(buffer);
+},
 $rt_arraycls = cls => {
     let result = cls.$array;
     if (result === null) {
@@ -604,21 +609,53 @@ jl_System_out = () => {
 },
 t_TTTEngine = $rt_classWithoutFields(),
 t_TTTEngine_bestMove = ($boardString, $playerChar) => {
-    let $board, $player, $search, $move, var$7, var$8;
+    let $board, $player, $empties, $preferred, var$7, var$8, var$9, var$10, $c, $p, var$13, $search, $move, var$16;
     $board = t_Board__init_1($boardString);
     $player = t_Player_valueOf($playerChar);
     if ($player === null)
         $rt_throw(jl_IllegalArgumentException__init_((((jl_StringBuilder__init_()).$append1($rt_s(0))).$append0($playerChar)).$toString()));
+    a: {
+        $empties = $board.$numberEmptySquares();
+        if ($empties > 56) {
+            $preferred = $rt_createArray($rt_arraycls($rt_intcls), 8);
+            var$7 = $preferred.data;
+            var$7[0] = $rt_createIntArrayFromData([1, 1, 1]);
+            var$7[1] = $rt_createIntArrayFromData([2, 2, 2]);
+            var$7[2] = $rt_createIntArrayFromData([1, 1, 2]);
+            var$7[3] = $rt_createIntArrayFromData([1, 2, 1]);
+            var$7[4] = $rt_createIntArrayFromData([2, 1, 1]);
+            var$7[5] = $rt_createIntArrayFromData([2, 2, 1]);
+            var$7[6] = $rt_createIntArrayFromData([2, 1, 2]);
+            var$7[7] = $rt_createIntArrayFromData([1, 2, 2]);
+            var$8 = var$7.length;
+            var$9 = 0;
+            while (true) {
+                if (var$9 >= var$8) {
+                    var$10 = ($board.$emptySquares()).$iterator();
+                    if (!var$10.$hasNext())
+                        break a;
+                    $c = var$10.$next0();
+                    return $rt_createIntArrayFromData([$c.$getX(), $c.$getY(), $c.$getZ()]);
+                }
+                $p = var$7[var$9];
+                var$13 = $p.data;
+                if ($board.$isEmpty(var$13[0], var$13[1], var$13[2]))
+                    break;
+                var$9 = var$9 + 1 | 0;
+            }
+            return $rt_createIntArrayFromData([var$13[0], var$13[1], var$13[2]]);
+        }
+    }
     $search = t_AlphaBeta__init_0();
     $move = $search.$bestMove($board, $player);
     if ($move === null)
         return null;
-    var$7 = $rt_createIntArray(3);
-    var$8 = var$7.data;
-    var$8[0] = $move.$getX();
-    var$8[1] = $move.$getY();
-    var$8[2] = $move.$getZ();
-    return var$7;
+    var$13 = $rt_createIntArray(3);
+    var$16 = var$13.data;
+    var$16[0] = $move.$getX();
+    var$16[1] = $move.$getY();
+    var$16[2] = $move.$getZ();
+    return var$13;
 },
 t_TTTEngine_applyMove = ($boardString, $x, $y, $z, $playerChar) => {
     let $board, $player;
@@ -822,24 +859,24 @@ otci_IntegerUtil_toUnsignedLogRadixString = ($value, $radixLog2) => {
 };
 function t_Board$EmptySquareIterator() {
     let a = this; jl_Object.call(a);
-    a.$iterator0 = null;
-    a.$this$0 = null;
+    a.$iterator1 = null;
+    a.$this$00 = null;
 }
-let t_Board$EmptySquareIterator__init_ = ($this, var$1) => {
-    $this.$this$0 = var$1;
+let t_Board$EmptySquareIterator__init_0 = ($this, var$1) => {
+    $this.$this$00 = var$1;
     jl_Object__init_($this);
-    $this.$iterator0 = t_Bit_iterator(Long_xor(Long_or(t_Board_access$000(var$1), t_Board_access$100(var$1)), Long_fromInt(-1)));
+    $this.$iterator1 = t_Bit_iterator(Long_xor(Long_or(t_Board_access$000(var$1), t_Board_access$100(var$1)), Long_fromInt(-1)));
 },
-t_Board$EmptySquareIterator__init_0 = var_0 => {
+t_Board$EmptySquareIterator__init_ = var_0 => {
     let var_1 = new t_Board$EmptySquareIterator();
-    t_Board$EmptySquareIterator__init_(var_1, var_0);
+    t_Board$EmptySquareIterator__init_0(var_1, var_0);
     return var_1;
 },
 t_Board$EmptySquareIterator_hasNext = $this => {
-    return $this.$iterator0.$hasNext();
+    return $this.$iterator1.$hasNext();
 },
 t_Board$EmptySquareIterator_next0 = $this => {
-    return t_Coordinate_valueOf(($this.$iterator0.$next0()).$intValue());
+    return t_Coordinate_valueOf(($this.$iterator1.$next0()).$intValue());
 },
 t_Board$EmptySquareIterator_next = $this => {
     return $this.$next1();
@@ -1685,6 +1722,39 @@ let t_Line$Axis__clinit_ = () => {
     t_Line$Axis_Z = t_Line$Axis__init_($rt_s(28), 2);
     t_Line$Axis_$VALUES = t_Line$Axis_$values();
 };
+function t_Board$1() {
+    jl_Object.call(this);
+    this.$this$0 = null;
+}
+let t_Board$1__init_ = ($this, $this$0) => {
+    $this.$this$0 = $this$0;
+    jl_Object__init_($this);
+},
+t_Board$1__init_0 = var_0 => {
+    let var_1 = new t_Board$1();
+    t_Board$1__init_(var_1, var_0);
+    return var_1;
+},
+t_Board$1_iterator = $this => {
+    return t_Board$EmptySquareIterator__init_($this.$this$0);
+},
+jl_IllegalArgumentException = $rt_classWithoutFields(jl_RuntimeException),
+jl_IllegalArgumentException__init_1 = $this => {
+    jl_RuntimeException__init_($this);
+},
+jl_IllegalArgumentException__init_0 = () => {
+    let var_0 = new jl_IllegalArgumentException();
+    jl_IllegalArgumentException__init_1(var_0);
+    return var_0;
+},
+jl_IllegalArgumentException__init_2 = ($this, $message) => {
+    jl_RuntimeException__init_0($this, $message);
+},
+jl_IllegalArgumentException__init_ = var_0 => {
+    let var_1 = new jl_IllegalArgumentException();
+    jl_IllegalArgumentException__init_2(var_1, var_0);
+    return var_1;
+};
 function t_AlphaBeta() {
     jl_Object.call(this);
     this.$computer = null;
@@ -1778,23 +1848,6 @@ t_AlphaBeta_minValue = ($this, $state, $depth, $alpha, $beta) => {
         $tstate = t_Board__init_($state);
     }
     return $minValue;
-},
-jl_IllegalArgumentException = $rt_classWithoutFields(jl_RuntimeException),
-jl_IllegalArgumentException__init_1 = $this => {
-    jl_RuntimeException__init_($this);
-},
-jl_IllegalArgumentException__init_0 = () => {
-    let var_0 = new jl_IllegalArgumentException();
-    jl_IllegalArgumentException__init_1(var_0);
-    return var_0;
-},
-jl_IllegalArgumentException__init_2 = ($this, $message) => {
-    jl_RuntimeException__init_0($this, $message);
-},
-jl_IllegalArgumentException__init_ = var_0 => {
-    let var_1 = new jl_IllegalArgumentException();
-    jl_IllegalArgumentException__init_2(var_1, var_0);
-    return var_1;
 },
 t_Player = $rt_classWithoutFields(jl_Enum),
 t_Player_X = null,
@@ -2255,7 +2308,10 @@ t_Board_set0 = ($this, $x, $y, $z, $player) => {
     $this.$set3(t_Coordinate_position($x, $y, $z), $player);
 },
 t_Board_emptySquareIterator = $this => {
-    return t_Board$EmptySquareIterator__init_0($this);
+    return t_Board$EmptySquareIterator__init_($this);
+},
+t_Board_emptySquares = $this => {
+    return t_Board$1__init_0($this);
 },
 t_Board_access$000 = $x0 => {
     t_Board_$callClinit();
@@ -2297,7 +2353,7 @@ jl_NullPointerException, 0, jl_RuntimeException, [], 0, 3, 0, 0, ["$_init_", $rt
 jl_Character, 0, jl_Object, [jl_Comparable], 0, 3, 0, jl_Character_$callClinit, 0,
 jl_Enum, 0, jl_Object, [jl_Comparable, ji_Serializable], 1, 3, 0, 0, ["$_init_7", $rt_wrapFunction2(jl_Enum__init_), "$ordinal", $rt_wrapFunction0(jl_Enum_ordinal)],
 otci_IntegerUtil, 0, jl_Object, [], 4, 3, 0, 0, 0,
-t_Board$EmptySquareIterator, 0, jl_Object, [ju_Iterator], 0, 0, 0, 0, ["$_init_8", $rt_wrapFunction1(t_Board$EmptySquareIterator__init_), "$hasNext", $rt_wrapFunction0(t_Board$EmptySquareIterator_hasNext), "$next1", $rt_wrapFunction0(t_Board$EmptySquareIterator_next0), "$next0", $rt_wrapFunction0(t_Board$EmptySquareIterator_next)],
+t_Board$EmptySquareIterator, 0, jl_Object, [ju_Iterator], 0, 0, 0, 0, ["$_init_8", $rt_wrapFunction1(t_Board$EmptySquareIterator__init_0), "$hasNext", $rt_wrapFunction0(t_Board$EmptySquareIterator_hasNext), "$next1", $rt_wrapFunction0(t_Board$EmptySquareIterator_next0), "$next0", $rt_wrapFunction0(t_Board$EmptySquareIterator_next)],
 otcir_FieldInfo, 0, jl_Object, [], 0, 3, 0, 0, 0,
 jl_Math, 0, jl_Object, [], 4, 3, 0, 0, 0,
 jl_Cloneable, 0, jl_Object, [], 3, 3, 0, 0, 0,
@@ -2334,8 +2390,9 @@ jl_String, 0, jl_Object, [ji_Serializable, jl_Comparable, jl_CharSequence], 0, 3
 jl_NegativeArraySizeException, 0, jl_RuntimeException, [], 0, 3, 0, 0, ["$_init_", $rt_wrapFunction0(jl_NegativeArraySizeException__init_)],
 t_Board$2, 0, jl_Object, [], 32, 0, 0, t_Board$2_$callClinit, 0,
 t_Line$Axis, 0, jl_Enum, [], 12, 0, 0, t_Line$Axis_$callClinit, 0,
-t_AlphaBeta, 0, jl_Object, [], 0, 3, 0, 0, ["$_init_", $rt_wrapFunction0(t_AlphaBeta__init_), "$bestMove", $rt_wrapFunction2(t_AlphaBeta_bestMove), "$maxValue", $rt_wrapFunction4(t_AlphaBeta_maxValue), "$minValue", $rt_wrapFunction4(t_AlphaBeta_minValue)],
+t_Board$1, 0, jl_Object, [jl_Iterable], 0, 0, 0, 0, ["$_init_8", $rt_wrapFunction1(t_Board$1__init_), "$iterator", $rt_wrapFunction0(t_Board$1_iterator)],
 jl_IllegalArgumentException, 0, jl_RuntimeException, [], 0, 3, 0, 0, ["$_init_", $rt_wrapFunction0(jl_IllegalArgumentException__init_1), "$_init_0", $rt_wrapFunction1(jl_IllegalArgumentException__init_2)],
+t_AlphaBeta, 0, jl_Object, [], 0, 3, 0, 0, ["$_init_", $rt_wrapFunction0(t_AlphaBeta__init_), "$bestMove", $rt_wrapFunction2(t_AlphaBeta_bestMove), "$maxValue", $rt_wrapFunction4(t_AlphaBeta_maxValue), "$minValue", $rt_wrapFunction4(t_AlphaBeta_minValue)],
 t_Player, 0, jl_Enum, [], 12, 3, 0, t_Player_$callClinit, ["$other", $rt_wrapFunction0(t_Player_other), "$toString", $rt_wrapFunction0(t_Player_toString)],
 t_Coordinate, 0, jl_Object, [], 0, 3, 0, t_Coordinate_$callClinit, ["$getX", $rt_wrapFunction0(t_Coordinate_getX0), "$getY", $rt_wrapFunction0(t_Coordinate_getY0), "$getZ", $rt_wrapFunction0(t_Coordinate_getZ0), "$position1", $rt_wrapFunction0(t_Coordinate_position0)],
 t_WebEntry, 0, jl_Object, [], 0, 3, 0, t_WebEntry_$callClinit, 0,
@@ -2344,7 +2401,7 @@ jl_Class, 0, jl_Object, [jlr_AnnotatedElement, jlr_Type], 4, 3, 0, 0, ["$getPlat
 ju_Comparator, 0, jl_Object, [], 3, 3, 0, 0, 0,
 jl_String$_clinit_$lambda$_115_0, 0, jl_Object, [ju_Comparator], 0, 3, 0, 0, ["$_init_", $rt_wrapFunction0(jl_String$_clinit_$lambda$_115_0__init_)],
 t_Board, 0, jl_Object, [], 0, 3, 0, t_Board_$callClinit, ["$_init_8", $rt_wrapFunction1(t_Board__init_0), "$_init_0", $rt_wrapFunction1(t_Board__init_2), "$isTerminal", $rt_wrapFunction0(t_Board_isTerminal), "$playerWon", $rt_wrapFunction1(t_Board_playerWon), "$evaluate", $rt_wrapFunction1(t_Board_evaluate), "$isEmpty1", $rt_wrapFunction1(t_Board_isEmpty), "$isEmpty", $rt_wrapFunction3(t_Board_isEmpty0), "$numberEmptySquares", $rt_wrapFunction0(t_Board_numberEmptySquares), "$get1", $rt_wrapFunction1(t_Board_get),
-"$get", $rt_wrapFunction1(t_Board_get0), "$set3", $rt_wrapFunction2(t_Board_set), "$set2", $rt_wrapFunction2(t_Board_set1), "$set", $rt_wrapFunction4(t_Board_set0), "$emptySquareIterator", $rt_wrapFunction0(t_Board_emptySquareIterator)]]);
+"$get", $rt_wrapFunction1(t_Board_get0), "$set3", $rt_wrapFunction2(t_Board_set), "$set2", $rt_wrapFunction2(t_Board_set1), "$set", $rt_wrapFunction4(t_Board_set0), "$emptySquareIterator", $rt_wrapFunction0(t_Board_emptySquareIterator), "$emptySquares", $rt_wrapFunction0(t_Board_emptySquares)]]);
 let $rt_charArrayCls = $rt_arraycls($rt_charcls),
 $rt_intArrayCls = $rt_arraycls($rt_intcls);
 $rt_stringPool(["Invalid player: ", "Cell is not empty at (", ",", ")", "0", "Straight line: ", "Column: X = ", " Z = ", "Pillar: X = ", " Y = ", "???: row = ", " col = ", "Row: Y = ", "Forward diagonal: ", "XZ-Plane Y = ", "XY-Plane Z = ", "??-Plane (", "YZ-Plane X = ", "Main diagonal", "Reverse diagonal: ", "Main diagonal: reverse", "X-Axis", "Y-Axis", "Z-Axis", "null", "\n", "X", "Y", "Z", "RETURNING A NULL", "O", "."]);
