@@ -1,0 +1,82 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>me.ashvin</groupId>
+  <artifactId>ttt</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+  <name>TTT</name>
+  <description>4x4x4 Tic-Tac-Toe, TeaVM JS build</description>
+
+  <properties>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <teavm.version>0.12.3</teavm.version>
+  </properties>
+
+  <build>
+    <sourceDirectory>${project.basedir}/src</sourceDirectory>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.11.0</version>
+        <configuration>
+          <release>8</release>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.teavm</groupId>
+        <artifactId>teavm-maven-plugin</artifactId>
+        <version>${teavm.version}</version>
+        <executions>
+          <execution>
+            <id>compile-javascript</id>
+            <phase>package</phase>
+            <goals>
+              <goal>compile</goal>
+            </goals>
+            <configuration>
+              <mainClass>tttweb.WebEntry</mainClass>
+              <targetDirectory>${project.basedir}/docs/3dttt/app</targetDirectory>
+              <targetFileName>app.js</targetFileName>
+              <obfuscated>false</obfuscated>
+              <sourceMapsGenerated>true</sourceMapsGenerated>
+              <debugInformationGenerated>true</debugInformationGenerated>
+              <minifying>false</minifying>
+            </configuration>
+          </execution>
+        </executions>
+        <dependencies>
+          <dependency>
+            <groupId>org.teavm</groupId>
+            <artifactId>teavm-classlib</artifactId>
+            <version>${teavm.version}</version>
+          </dependency>
+          <dependency>
+            <groupId>org.teavm</groupId>
+            <artifactId>teavm-platform</artifactId>
+            <version>${teavm.version}</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+    </plugins>
+  </build>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.teavm</groupId>
+      <artifactId>teavm-platform</artifactId>
+      <version>${teavm.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.teavm</groupId>
+      <artifactId>teavm-jso</artifactId>
+      <version>${teavm.version}</version>
+    </dependency>
+  </dependencies>
+
+</project>
+
+

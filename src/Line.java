@@ -1,3 +1,5 @@
+package ttt;
+
 public class Line {
 
     private long positions;

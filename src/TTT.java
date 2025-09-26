@@ -1,4 +1,6 @@
 
+package ttt;
+
 import java.io.Console;
 import static java.lang.System.console;
 import java.util.Iterator;

@@ -1,2 +1,10 @@
+target/
+.idea/
+.vscode/
+*.iml
+dist/
+build/
+nbproject/private/
+
 .DS_Store
 **/.DS_Store
